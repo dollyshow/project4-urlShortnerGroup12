@@ -1,18 +1,18 @@
 const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
-     urlCode: { 
+urlCode: { 
         type:String,
         required:true,
          unique:true,
           lowercase:true,
            trim:true 
         },
-        longUrl: {
+ longUrl: {
             type:String,
         required:true
         },
-        shortUrl: {
+shortUrl: {
             type:String,
             required:true,
             unique:true
