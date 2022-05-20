@@ -85,7 +85,7 @@ const getUrl = async (req,res) => {
         if(cachedLongUrl){
             
     console.log("redirect from cache")
-     return res.status(200).redirect(JSON.parse(cachedLongUrl))
+     return res.status(302).redirect(JSON.parse(cachedLongUrl))
         }
         else{
             const url = await urlModel.findOne({urlCode:urlCode})
@@ -94,7 +94,7 @@ const getUrl = async (req,res) => {
             }
             await SET_ASYNC(`${urlCode}`,JSON.stringify(url.longUrl))
             console.log("redirect from DB")
-            return res.status(200).redirect(url.longUrl)
+            return res.status(302).redirect(url.longUrl)
      }
     }
     catch(err){
