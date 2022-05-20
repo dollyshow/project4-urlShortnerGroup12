@@ -27,38 +27,44 @@ const redisClient = redis.createClient(
 const SET_ASYNC = promisify(redisClient.SET).bind(redisClient);
 const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
 
+ 
 const createUrl = async (req, res) => {
     try{
-        if(Object.keys(req.body).length == 0 || Object.keys(req.body).length > 1)
-        return res.status(400).send({status: false, message: "Invalid request parameters"});
-       
-        
- // destructure the longUrl from req.body.longUrl
-        const longUrl = req.body.longUrl;
 
-        if(!longUrl) return res.status(400).send({status: false, message: "longUrl is required"})
-       
- // check long url if valid using the validUrl.isUri method
-        if(validUrl.isUri(longUrl)){
-         let url = await urlModel.findOne({longUrl : longUrl}).select({_id: 0, __v: 0});
-  // if url exist and return the respose
+        const data = req.body;
+         // The API base Url endpoint
+        const baseUrl = 'http:localhost:3000'
+
+        
+        if(Object.keys(data).length == 0) return res.status(400).send({status: false, message: "Invalid URL Please Enter valid details"}) 
+        if(!data.longUrl) return res.status(400).send({status: false, message: "longUrl is required"})
+
+// check long url if valid using the validUrl.isUri method
+        if(validUrl.isUri(data.longUrl)){
+    // if url exist and return the respose
+                let getUrl = await GET_ASYNC(`${data.longUrl}`)
+                let url = JSON.parse(getUrl)
                 if(url){
- //using set to assign new key value pair in cache
-        await SET_ASYNC(`${longUrl}`,JSON.stringify(url))
-                    return res.status(200).send({status:true,message:"this longUrl is already present in db",data:url});
+                    return res.status(200).send({status: true, message: "Success",data: url});
                 }else{
-     // The API base Url endpoint
- const baseUrl = 'http://localhost:3000'
- // if valid, we create the url code
-        let urlCode = shortid.generate().toLowerCase();
-        if(!urlCode) return res.status(400).send({status: false, message: "invalid"})
- // join the generated urlcode to the baseurl
+    // if valid, we create the url code
+                    let urlCode = shortid.generate().toLowerCase();
+     // join the generated urlcode to the baseurl   
                     let shortUrl = baseUrl + "/" + urlCode;
-                    url  = await urlModel.create({longUrl, shortUrl, urlCode});
-                    return res.status(201).send({status:true,message:"url created successfully",data:url});
+
+                    data.urlCode = urlCode
+                    data.shortUrl = shortUrl
+                     
+                    url = await urlModel.create(data)
+                    
+                    let responseData  = await urlModel.findOne({urlCode:urlCode}).select({_id:0, __v:0,createdAt: 0, updatedAt: 0 });
+     //using set to assign new key value pair in cache
+                    await SET_ASYNC(`${data.longUrl}`, JSON.stringify(responseData))
+                    return res.status(201).send({status: true, message: "URL create successfully",data:responseData});
+
                 }
         }else{
-           return res.status(400).send({status: false, message: "Invalid longUrl"});
+           return res.status(400).send({status: false, message: "Enter a valid Url"});
         }    
 
     }catch(err){
