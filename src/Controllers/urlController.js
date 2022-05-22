@@ -33,7 +33,7 @@ const createUrl = async (req, res) => {
 
         const data = req.body;
          // The API base Url endpoint
-        const baseUrl = 'http:localhost:3000'
+        const baseUrl = 'http://localhost:3000'
 
         
         if(Object.keys(data).length == 0) return res.status(400).send({status: false, message: "Invalid URL Please Enter valid details"}) 
